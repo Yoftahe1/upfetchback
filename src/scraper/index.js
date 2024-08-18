@@ -1,15 +1,18 @@
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-extra";
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+puppeteer.use(StealthPlugin());
 
 export default async (URL) => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto(URL);
 
     // Extract data from the page
     const scrapedData = await page.evaluate(() => {
 
-        // Select all article with the data-ev-job-uid attribute
-        const jobElements = document.querySelectorAll('article[data-ev-job-uid]');
+        // Select all article with the data-ev-label attribute equal to 'search_results_impression'
+        const jobElements = document.querySelectorAll('article[data-ev-label=search_results_impression]');
 
         // Extract the job titles from these elements
         return Array.from(jobElements).map(element => {
@@ -27,7 +30,7 @@ export default async (URL) => {
             const publishedDate = element.querySelector('small[data-test=job-pubilshed-date]');
             const noProposals = element.querySelector('li[data-test=proposals-tier] > strong');
             const noFreelancers = element.querySelector('li[data-test=freelancers-to-hire] > strong');
-            
+
             const tokenElements = element.querySelectorAll('span[data-test=token]');
             const tokens = Array.from(tokenElements).map(element => element.innerText)
 
@@ -35,7 +38,7 @@ export default async (URL) => {
                 tokens,
                 type: type ? type.innerText.trim() : "",
                 title: title ? title.innerText.trim() : "",
-                link: link ? link.getAttribute('href'): "",
+                link: link ? link.getAttribute('href') : "",
                 spent: spent ? spent.innerText.trim() : "",
                 payment: payment ? payment.innerText.trim() : "",
                 feedback: feedback ? feedback.innerText.trim() : "",
