@@ -1,29 +1,37 @@
 import { io } from "../app.js";
+import scraper from "../scraper/index.js";
 
 export default () => {
     io.on('connection', (socket) => {
-  
+
         let intervalId;
 
         socket.on('subscribe', (URL) => {
-            let oldJobs=[]
-
-            console.log('User subscribed', URL);
+            let oldJobs = []
 
             intervalId = setInterval(() => {
-                socket.emit('jobs', URL);
-            }, 10000);
+
+                scraper(URL).then((newJobs) => {
+
+                    const onlyInNewJobs = newJobs.filter(newJob => !oldJobs.some(oldJob => oldJob.title === newJob.title));
+                    oldJobs = newJobs
+
+                    socket.emit('jobs', onlyInNewJobs)
+                    
+                }).catch((error) => console.log(error))
+
+            }, 60000);
 
         })
 
-        socket.on('disconnect', () => {
-            console.log('User disconnected');
-            clearInterval(intervalId); // Clean up interval when user disconnects
-          });
+        socket.on('unSubscribe', () => {
+            clearInterval(intervalId);
+        });
 
         socket.on('disconnect', () => {
-            console.log('User disconnected:', socket.id);
+            clearInterval(intervalId);
         });
+
     });
 }
 
