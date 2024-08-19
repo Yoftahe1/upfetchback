@@ -5,7 +5,10 @@ import bodyParser from "body-parser";
 import router from "../api/index.js";
 
 export default async ({ app }) => {
-    app.use(cors());
+    app.use(cors({
+        origin: '*', 
+        methods: ['GET', 'POST'],
+    }));
     app.use(express.json());
     app.use(bodyParser.urlencoded({ extended: true }));
 
