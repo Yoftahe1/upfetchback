@@ -24,7 +24,7 @@ export default () => {
 
         })
 
-        socket.on('unSubscribe', () => {
+        socket.on('unsubscribe', () => {
             clearInterval(intervalId);
         });
 
